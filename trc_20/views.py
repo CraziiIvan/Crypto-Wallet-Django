@@ -6,7 +6,12 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .models import Wallet, Transaction
 from .serializers import WalletSerializer, TransactionSerializer
-from .utils import generate_new_wallet, make_transaction, get_transaction_history
+from .utils import (
+    generate_new_wallet,
+    make_transaction,
+    get_transaction_history,
+    get_wallet_balance,
+)
 
 
 class WalletCreateAPIView(APIView):
@@ -50,6 +55,8 @@ class WalletDetailAPIView(APIView):
         user = self.request.user
 
         wallet = user.wallet if hasattr(user, "wallet") else None
+        wallet.balance = get_wallet_balance(wallet)
+        wallet.save()
 
         if wallet:
             serializer = WalletSerializer(wallet)

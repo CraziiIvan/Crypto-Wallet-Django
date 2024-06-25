@@ -39,3 +39,7 @@
 
 - "/admin" - Admin Panel
 - "/api/swagger" - API Documentation
+
+# Database Schema
+
+![](Crypto-Wallet-DB-Schema.png?raw=true)

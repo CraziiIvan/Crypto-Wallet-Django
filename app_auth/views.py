@@ -4,9 +4,13 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from drf_yasg.utils import swagger_auto_schema
 from .serializers import *
 from django.db.utils import IntegrityError
-from drf_yasg.utils import swagger_auto_schema
+from django.contrib.auth import get_user_model
+from drf_yasg import openapi
+
+User = get_user_model()
 
 
 class RegistrationView(APIView):
@@ -17,14 +21,14 @@ class RegistrationView(APIView):
         responses={
             status.HTTP_201_CREATED: "Registration successful",
             status.HTTP_409_CONFLICT: "Account with that email already exists",
+            status.HTTP_400_BAD_REQUEST: "Invalid data provided",
         },
     )
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             try:
-                user = serializer.create(serializer.validated_data)
-                user.save()
+                user = serializer.save()
                 refresh = RefreshToken.for_user(user)
                 access_token = str(refresh.access_token)
                 refresh_token = str(refresh)
@@ -81,6 +85,14 @@ class UserUpdateAPIView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="Update user profile information",
+        request_body=UserUpdateSerializer,
+        responses={
+            200: CustomUserSerializer,
+            400: "Invalid data provided",
+        },
+    )
     def put(self, request):
         user = request.user
         serializer = UserUpdateSerializer(user, data=request.data)
@@ -91,16 +103,3 @@ class UserUpdateAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UsernameAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        user_id = request.data.get("user_id")
-        if not user_id:
-            return Response({"error": "User ID is required."}, status=400)
-
-        try:
-            user = User.objects.get(user_id=user_id)
-            return Response({"username": user.username})
-        except User.DoesNotExist:
-            return Response({"error": "User not found."}, status=404)

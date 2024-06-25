@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = r'^ZKd[ZN!uDR&0iH"p:E&go1l@C@_OAV9<Hs_?V#]*q17/vqL1{C535m%]bF+&T1'
+SECRET_KEY = os.environ.get('SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if os.getenv("ENVIRONMENT") == "development" else False
@@ -128,7 +128,7 @@ if DEBUG:
 else:
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.mysql",
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
             "NAME": os.environ.get("DB_NAME"),  # Database name
             "USER": os.environ.get("DB_USER"),  # Database username
             "PASSWORD": os.environ.get("DB_PASSWORD"),  # Database password

@@ -1,10 +1,8 @@
-# wallet/utils.py
 
 from tronpy import Tron
 from tronpy.keys import PrivateKey
 from ..models import Wallet, Transaction
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
 
 User = get_user_model()
 client = Tron(network="trc-20")

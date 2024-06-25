@@ -6,11 +6,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .serializers import *
 from django.db.utils import IntegrityError
+from drf_yasg.utils import swagger_auto_schema
 
 
 class RegistrationView(APIView):
     serializer_class = RegistrationSerializer
 
+    @swagger_auto_schema(
+        request_body=RegistrationSerializer,
+        responses={
+            status.HTTP_201_CREATED: "Registration successful",
+            status.HTTP_409_CONFLICT: "Account with that email already exists",
+        },
+    )
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():

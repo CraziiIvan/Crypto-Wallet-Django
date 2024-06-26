@@ -2,12 +2,28 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.mail import send_mail
-from .models import *
-
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from .models import User, OTP
 
 class RequestOTPAPI(APIView):
+    
+    @swagger_auto_schema(
+        operation_description="Request an OTP for password reset",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['email'],
+            properties={
+                'email': openapi.Schema(type=openapi.TYPE_STRING, description='User email'),
+            },
+        ),
+        responses={
+            200: openapi.Response(description='OTP sent to your email'),
+            404: openapi.Response(description='User with this email does not exist'),
+        },
+    )
     def post(self, request):
-        email = request.data.get('email')  # Get email from request data
+        email = request.data.get('email')
         
         try:
             user = User.objects.get(email=email)
@@ -15,13 +31,11 @@ class RequestOTPAPI(APIView):
             return Response({'message': 'User with this email does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
         otp_obj, created = OTP.objects.get_or_create(user=user)
-
         otp = otp_obj.get_token()
 
-        # Send OTP via email
         subject = 'OneStep OTP for Password Reset'
         message = f'Your password reset OTP code is:<br> <h2><strong>{otp}</strong></h2>'
-        from_email = 'kyawkokotunmm475157@gmail.com'  # Replace with your email
+        from_email = 'kyawkokotunmm475157@gmail.com'
         recipient_list = [email]
 
         send_mail(subject=subject, from_email=from_email, recipient_list=recipient_list, fail_silently=True, html_message=message, message='')
@@ -30,6 +44,24 @@ class RequestOTPAPI(APIView):
 
 
 class ResetPasswordAPI(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Reset password using OTP",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['email', 'otp', 'password'],
+            properties={
+                'email': openapi.Schema(type=openapi.TYPE_STRING, description='User email'),
+                'otp': openapi.Schema(type=openapi.TYPE_STRING, description='OTP'),
+                'password': openapi.Schema(type=openapi.TYPE_STRING, description='New password'),
+            },
+        ),
+        responses={
+            200: openapi.Response(description='Password reset successful'),
+            400: openapi.Response(description='Invalid OTP'),
+            404: openapi.Response(description='User with this email does not exist'),
+        },
+    )
     def post(self, request):
         email = request.data.get('email')
         otp = request.data.get('otp')

@@ -24,4 +24,4 @@ class Transaction(models.Model):
     fee = models.DecimalField(max_digits=20, decimal_places=8, blank=True, null=True)
     
     def __str__(self):
-        return f"Transaction({self.transaction_hash}) - Amount: {self.amount}"
+        return f"Transaction ID: ({self.transaction_hash}) - Amount: {self.amount}"

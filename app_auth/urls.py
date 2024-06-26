@@ -19,5 +19,4 @@ urlpatterns = [
     path("profile/update/", UserUpdateAPIView.as_view(), name="user-update"),
     path("auth/request-otp/", RequestOTPAPI.as_view(), name="request_otp"),
     path("auth/reset-password/", ResetPasswordAPI.as_view(), name="reset_password"),
-    path("username/", UsernameAPIView.as_view(), name="api-username"),
 ]

@@ -5,7 +5,7 @@ from ..models import Wallet, Transaction
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-client = Tron(network="trc-20")
+client = Tron(network="nile")
 
 
 def generate_new_wallet(user):

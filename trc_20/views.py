@@ -55,8 +55,6 @@ class WalletDetailAPIView(APIView):
         user = self.request.user
 
         wallet = user.wallet if hasattr(user, "wallet") else None
-        wallet.balance = get_wallet_balance(wallet)
-        wallet.save()
 
         if wallet:
             serializer = WalletSerializer(wallet)
@@ -108,7 +106,7 @@ class TransactionAPIView(APIView):
             return Response(
                 {"message": "Invalid amount."}, status=status.HTTP_400_BAD_REQUEST
             )
-            
+
         wallet = user.wallet if hasattr(user, "wallet") else None
 
         if wallet:
@@ -117,7 +115,7 @@ class TransactionAPIView(APIView):
                     {"message": "Insufficient Balance."},
                     status=status.HTTP_424_FAILED_DEPENDENCY,
                 )
-            
+
             transaction = make_transaction(wallet, recipient_address, amount)
             serializer = TransactionSerializer(transaction)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -159,7 +157,7 @@ class SingleTransactionAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_description="Retrieve details of a specific transaction by ID",
+        operation_description="Retrieve details of a specific transaction by Hash",
         responses={
             200: TransactionSerializer(),
             404: openapi.Response(
@@ -167,13 +165,13 @@ class SingleTransactionAPIView(APIView):
             ),
         },
     )
-    def get(self, request, transaction_id):
+    def get(self, request, transaction_hash):
         user = self.request.user
         wallet = user.wallet if hasattr(user, "wallet") else None
 
         if wallet:
             try:
-                transaction = Transaction.objects.get(sender=wallet, id=transaction_id)
+                transaction = Transaction.objects.get(sender=wallet, transaction_hash=transaction_hash)
                 serializer = TransactionSerializer(transaction)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except Transaction.DoesNotExist:

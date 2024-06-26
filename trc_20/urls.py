@@ -17,7 +17,7 @@ urlpatterns = [
         name="transaction_history",
     ),
     path(
-        "transaction/<int:transaction_id>/",
+        "transaction/<str:transaction_hash>/",
         SingleTransactionAPIView.as_view(),
         name="single_transaction",
     ),

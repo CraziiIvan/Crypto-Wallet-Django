@@ -64,7 +64,10 @@ def get_transaction_history(wallet):
 
 
 def get_wallet_balance(wallet):
-    balance = client.get_account_balance(wallet.address)
+    try:
+        balance = client.get_account_balance(wallet.address)
+    except:
+        balance = 0
     wallet.balance = balance
     wallet.save()
     return balance

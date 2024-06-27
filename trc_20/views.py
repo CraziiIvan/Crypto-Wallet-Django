@@ -27,6 +27,7 @@ class WalletCreateAPIView(APIView):
     )
     def post(self, request):
         user = self.request.user
+        print(user)
 
         wallet = user.wallet if hasattr(user, "wallet") else None
 
@@ -55,8 +56,6 @@ class WalletDetailAPIView(APIView):
         user = self.request.user
 
         wallet = user.wallet if hasattr(user, "wallet") else None
-        wallet.balance = get_wallet_balance(wallet)
-        wallet.save()
 
         if wallet:
             serializer = WalletSerializer(wallet)
@@ -88,6 +87,7 @@ class TransactionAPIView(APIView):
             201: TransactionSerializer(),
             400: openapi.Response(description="Invalid request"),
             404: openapi.Response(description="No wallet found"),
+            424: openapi.Response(description="Insufficient Balance"),
         },
     )
     def post(self, request):
@@ -111,6 +111,12 @@ class TransactionAPIView(APIView):
         wallet = user.wallet if hasattr(user, "wallet") else None
 
         if wallet:
+            if amount > get_wallet_balance(wallet):
+                return Response(
+                    {"message": "Insufficient Balance."},
+                    status=status.HTTP_424_FAILED_DEPENDENCY,
+                )
+
             transaction = make_transaction(wallet, recipient_address, amount)
             serializer = TransactionSerializer(transaction)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -152,7 +158,7 @@ class SingleTransactionAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_description="Retrieve details of a specific transaction by ID",
+        operation_description="Retrieve details of a specific transaction by Hash",
         responses={
             200: TransactionSerializer(),
             404: openapi.Response(
@@ -160,13 +166,13 @@ class SingleTransactionAPIView(APIView):
             ),
         },
     )
-    def get(self, request, transaction_id):
+    def get(self, request, transaction_hash):
         user = self.request.user
         wallet = user.wallet if hasattr(user, "wallet") else None
 
         if wallet:
             try:
-                transaction = Transaction.objects.get(sender=wallet, id=transaction_id)
+                transaction = Transaction.objects.get(sender=wallet, transaction_hash=transaction_hash)
                 serializer = TransactionSerializer(transaction)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except Transaction.DoesNotExist:

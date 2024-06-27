@@ -16,7 +16,7 @@ class Wallet(models.Model):
     private_key = models.CharField(max_length=64, unique=True)
     balance = models.DecimalField(max_digits=20, decimal_places=8, default=0.0)
 
-    def update(self):
+    def update_balance(self):
         try:
             balance = client.get_account_balance(self.address)
         except:
@@ -31,7 +31,7 @@ class Wallet(models.Model):
 
 @receiver(post_init, sender=Wallet)
 def update_wallet_on_retrieve(sender, instance, **kwargs):
-    instance.update()
+    instance.update_balance()
 
 
 class Transaction(models.Model):

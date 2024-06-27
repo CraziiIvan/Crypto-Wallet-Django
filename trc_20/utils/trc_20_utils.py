@@ -1,30 +1,30 @@
-
 from tronpy import Tron
 from tronpy.keys import PrivateKey
 from ..models import Wallet, Transaction
 from django.contrib.auth import get_user_model
-import os 
+import os
 import dotenv
 
 dotenv.load_dotenv()
 
 User = get_user_model()
-client = Tron(network=os.environ.get('TRON'))
+client = Tron(network=os.environ.get("TRON"))
 
 
 def generate_new_wallet(user):
+
     private_key = PrivateKey.random()
     address = private_key.public_key.to_base58check_address()
 
-    wallet, created = Wallet.objects.get_or_create(
-        user=user,
-        defaults={"address": address, "private_key": private_key.hex(), "balance": 0.0},
-    )
-
-    if not created:
-        wallet.address = address
-        wallet.private_key = private_key.hex()
-        wallet.save()
+    try:
+        wallet = Wallet.objects.create(
+            user=user,
+            address=address,
+            private_key=private_key.hex(),
+            balance=0.0,
+        )
+    except:
+        wallet = user.wallet
 
     return wallet
 
@@ -53,7 +53,7 @@ def make_transaction(sender_wallet, recipient_address, amount):
             block_number=txn_result.get("block_number"),
             fee=txn_result.get("fee", 0.0),
         )
-        
+
         return transaction
     except Exception as ex:
         return {"error": str(ex)}

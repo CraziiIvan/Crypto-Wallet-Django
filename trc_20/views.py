@@ -27,6 +27,7 @@ class WalletCreateAPIView(APIView):
     )
     def post(self, request):
         user = self.request.user
+        print(user)
 
         wallet = user.wallet if hasattr(user, "wallet") else None
 
